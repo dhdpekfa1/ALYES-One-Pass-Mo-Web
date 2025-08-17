@@ -1,8 +1,13 @@
 import { Button, Dropdown } from '@/shared/ui';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
+import { useGetLessonSearch } from '@/entities/student/api';
 
 export const VerificationPage = () => {
+  const location = useLocation();
+  const { studentId } = location.state;
+  const { data } = useGetLessonSearch(studentId, 'TODO: time');
+
   const [value, setValue] = useState('');
   const navigate = useNavigate();
 
@@ -10,6 +15,9 @@ export const VerificationPage = () => {
     console.log('TODO: 이벤트 구현');
     navigate('/confirmation');
   };
+
+  console.log('studentId', studentId);
+  console.log('data', data);
 
   return (
     <div className='min-h-dvh w-full flex flex-col justify-between lg:justify-center'>

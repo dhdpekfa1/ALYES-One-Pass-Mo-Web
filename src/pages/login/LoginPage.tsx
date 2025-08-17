@@ -47,7 +47,9 @@ export const LoginPage = () => {
             title: '인증 성공',
             description: '학생 정보를 확인했습니다.',
           });
-          navigate('/verification');
+          navigate('/verification', {
+            state: { studentId: data.result[0].id },
+          });
         },
         onError: () => {
           toast({

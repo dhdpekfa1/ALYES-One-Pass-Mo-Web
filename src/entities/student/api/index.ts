@@ -1,2 +1,7 @@
-export { type TGetStudentFind, getStudentFind } from './types.ts';
-export { useGetStudentFind } from './action.ts';
+export {
+  type TGetStudentFindResponse,
+  type TGetLessonTeacherResponse,
+  getStudentFindResponse,
+  getLessonTeacherResponseSchema,
+} from './types.ts';
+export { useGetStudentFind, useGetLessonSearch } from './action.ts';

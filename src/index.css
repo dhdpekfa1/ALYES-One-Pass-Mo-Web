@@ -165,9 +165,7 @@ body {
   }
 }
 
-/* Token utilities (no PostCSS plugin needed) */
 @layer utilities {
-  /* Title (700) */
   .title-11 {
     font-weight: 700;
     font-size: 26px;
@@ -328,5 +326,19 @@ body {
     font-weight: 400;
     font-size: 8px;
     line-height: 16px;
+  }
+}
+
+@layer utilities {
+  .button-shadow-container {
+    @apply p-4 bg-white;
+    box-shadow: 0 -2px 9px 0 #0000000a;
+  }
+}
+@media (min-width: 1024px) {
+  .button-shadow-container {
+    padding-top: 20;
+    background: transparent;
+    box-shadow: none;
   }
 }

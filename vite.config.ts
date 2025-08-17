@@ -4,9 +4,16 @@ import svgr from 'vite-plugin-svgr';
 import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [svgr(), react(), tailwindcss()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://43.201.53.29:8080',
+        changeOrigin: true,
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

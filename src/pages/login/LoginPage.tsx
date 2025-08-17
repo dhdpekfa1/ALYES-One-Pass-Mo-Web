@@ -1,12 +1,41 @@
 import { Button, LabelInput } from '@/shared/ui';
 import { useNavigate } from 'react-router';
+import { useGetStudentFind } from '@/entities/student/api';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type LoginForValues, loginSchema } from '@/entities/student/model';
+
+// TODO: shadcn toast 사용
 
 export const LoginPage = () => {
   const navigate = useNavigate();
 
-  const onPressButton = () => {
-    console.log('TODO: 이벤트 구현');
-    navigate('/verification');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm<LoginForValues>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const { mutate, isPending } = useGetStudentFind({
+    onSuccess: () => {
+      navigate('/verification');
+    },
+    onError: () => {
+      setError('root', {
+        type: 'manual',
+        message: '일치하는 학생 정보를 찾을 수 없습니다. 다시 확인해주세요.',
+      });
+    },
+  });
+
+  const onSubmit = (data: LoginForValues) => {
+    mutate({
+      name: data.name.trim(),
+      phone: data.phone.trim(),
+    });
   };
 
   return (
@@ -29,26 +58,53 @@ export const LoginPage = () => {
           </p>
         </div>
 
-        <div className='mt-4 flex flex-col gap-4  p-4'>
-          <LabelInput
-            label='회원 이름'
-            placeholder='회원 이름을 입력해주세요.'
-            size='md'
-          />
-          <LabelInput
-            label='학부모 전화 번호'
-            placeholder='학부모 전화 번호를 입력해주세요.'
-            size='md'
-          />
-        </div>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className='mt-4 flex flex-col gap-4 p-4'
+        >
+          <div className='flex flex-col gap-1'>
+            <LabelInput
+              label='회원 이름'
+              placeholder='회원 이름을 입력해주세요.'
+              size='md'
+              {...register('name')}
+            />
+            {errors.name && (
+              <span className='text-red-500 text-sm'>
+                {errors.name.message}
+              </span>
+            )}
+          </div>
+
+          <div className='flex flex-col gap-1'>
+            <LabelInput
+              label='학부모 전화 번호'
+              placeholder='학부모 전화 번호를 입력해주세요.'
+              size='md'
+              {...register('phone')}
+            />
+            {errors.phone && (
+              <span className='text-red-500 text-sm'>
+                {errors.phone.message}
+              </span>
+            )}
+          </div>
+
+          {errors.root && (
+            <div className='text-red-500 text-sm text-center'>
+              {errors.root.message}
+            </div>
+          )}
+        </form>
       </div>
 
       <div className='button-shadow-container w-full lg:max-w-lg lg:mx-auto'>
         <Button
-          title='확인'
+          title={isPending ? '확인 중...' : '확인'}
           variant='primary'
-          onPress={onPressButton}
+          onPress={handleSubmit(onSubmit)}
           size='lg'
+          disabled={isPending}
         />
       </div>
     </div>

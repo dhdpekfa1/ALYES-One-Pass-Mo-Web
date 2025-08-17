@@ -1,2 +1,2 @@
 export type { TGetStudentFind } from './types.ts';
-export { getStudentFind } from './action.ts';
+export { useGetStudentFind } from './action.ts';

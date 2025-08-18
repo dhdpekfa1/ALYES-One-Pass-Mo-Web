@@ -1,5 +1,6 @@
 import z from 'zod';
 import { NAME_REGEX, PHONE_REGEX } from './';
+import { shuttleAttendanceStatusEnumSchema } from '@/shared/api/model';
 
 export const nameField = z
   .string({
@@ -28,3 +29,10 @@ export const loginSchema = z.object({
     .regex(/^[0-9-]+$/, '올바른 전화번호 형식을 입력해주세요.'),
 });
 export type LoginForValues = z.infer<typeof loginSchema>;
+
+export const shuttleAttendanceSchema = z.array(
+  z.object({
+    id: z.number().nullable(),
+    type: shuttleAttendanceStatusEnumSchema,
+  }),
+);

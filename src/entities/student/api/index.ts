@@ -8,4 +8,8 @@ export {
   getStudentFindResponse,
   getLessonTeacherResponseSchema,
 } from './types.ts';
-export { useGetStudentFind, useGetLessonSearch } from './action.ts';
+export {
+  useGetStudentFind,
+  useGetLessonSearch,
+  usePostShuttleAttendance,
+} from './action.ts';

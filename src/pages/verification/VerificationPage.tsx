@@ -4,11 +4,13 @@ import { useLocation, useNavigate } from 'react-router';
 import { Button, Dropdown } from '@/shared/ui';
 import {
   useGetLessonSearch,
-  usePostShuttleAttendance,
+  type TGetLessonTeacherResponse,
 } from '@/entities/student/api';
 
 /**
- * id: null - 생성, 해당 id 값 - 수정
+ * shuttleAttendance가 빈 배열일 경우  id: null - 생성
+ * shuttleAttendance가 있을 경우      해당 id 값 - 수정
+ *
  * status: 출석 - WILL_ATTENDANCE, 결석 - WILL_ABSENT ✔️
  * boardingOrder: 999 고정 사용
  */
@@ -24,7 +26,7 @@ export const VerificationPage = () => {
 
   const today = dayjs().format('YYYY-MM-DD');
   const { data } = useGetLessonSearch(studentId, today);
-  const { mutate: postShuttleAttendance } = usePostShuttleAttendance();
+  // const { mutate: postShuttleAttendance } = usePostShuttleAttendance();
 
   const [value, setValue] = useState('');
   const navigate = useNavigate();
@@ -36,8 +38,7 @@ export const VerificationPage = () => {
     navigate('/confirmation');
   };
 
-  console.log('studentId', studentId);
-  console.log('data', data);
+  const lessons = (data?.result ?? []) as TGetLessonTeacherResponse['result'];
 
   return (
     <div className='min-h-dvh w-full flex flex-col justify-between lg:justify-center'>
@@ -52,11 +53,11 @@ export const VerificationPage = () => {
             </span>
           </div>
           <p className='title-6 text-grey-800'>
-            반갑습니다, [회원명] 학부모님!
+            반갑습니다, [{lessons[0].student.name}] 학부모님!
           </p>
           <div>
             <p className='mid-5 text-grey-600'>
-              [회원명] 회원의 출석 여부를 알려주세요.
+              [{lessons[0].student.name}] 회원의 출석 여부를 알려주세요.
             </p>
             <p className='mid-5 text-grey-600'>
               보내주신 정보는 수업 준비에 큰 도움이 됩니다.
@@ -66,20 +67,26 @@ export const VerificationPage = () => {
 
         <div className='flex flex-col p-4'>
           {/* map */}
-          <div className='flex flex-col p-2.5 gap-4 bg-grey-50 rounded-[6px]'>
-            <span className='mid-5 text-green-700'>수업-1</span>
-            <div className='flex gap-1 items-center'>
-              <p className='title-6 text-green-600'>sportName</p>
-              <p className='title-6 text-grey-600'>lessonName</p>
-              <span className='mid-4 text-grey-600'>월 10:00~12:00</span>
+          {lessons?.map((data, index) => (
+            <div className='flex flex-col p-2.5 gap-4 bg-grey-50 rounded-[6px]'>
+              <span className='mid-5 text-green-700'>수업-{index + 1}</span>
+              <div className='flex gap-1 items-center'>
+                <p className='title-6 text-green-600'>
+                  {data.lesson.sportsName}
+                </p>
+                <p className='title-6 text-grey-600'>
+                  {data.lesson.lessonName}
+                </p>
+                <span className='mid-4 text-grey-600'>월 10:00~12:00</span>
+              </div>
+              <Dropdown
+                label='출결 선택'
+                items={ATTENDANCE_STATUS.map(status => status.label)}
+                selectedItem={value}
+                onSelect={setValue}
+              />
             </div>
-            <Dropdown
-              label='출결 선택'
-              items={ATTENDANCE_STATUS.map(status => status.label)}
-              selectedItem={value}
-              onSelect={setValue}
-            />
-          </div>
+          ))}
         </div>
       </div>
 

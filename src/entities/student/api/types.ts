@@ -27,7 +27,9 @@ export const getLessonTeacherResponseSchema = apiResponseSchema.extend({
     }),
   ),
 });
-export type TGetLessonTeacherResponse = z.infer<typeof getStudentFindResponse>;
+export type TGetLessonTeacherResponse = z.infer<
+  typeof getLessonTeacherResponseSchema
+>;
 
 /** 출석 사전 확인 등록/수정 요청 스키마/타입 */
 export const postShuttleAttendanceRequestSchema = z.array(

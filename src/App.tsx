@@ -8,7 +8,6 @@ import {
 } from './pages';
 import { Toaster } from '@/shared/ui';
 
-// QueryClient 인스턴스 생성
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -22,7 +21,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// 단계별 보호된 라우트 컴포넌트
+// 단계별 라우트 보호
 const ProtectedRoute = ({
   children,
   requiredStep,

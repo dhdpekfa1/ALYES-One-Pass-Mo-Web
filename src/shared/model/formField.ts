@@ -1,5 +1,5 @@
 import z from 'zod';
-import { NAME_REGEX, PHONE_REGEX } from './';
+import { NAME_REGEX, PHONE_REGEX } from './regex';
 
 export const nameField = z
   .string({

@@ -18,6 +18,7 @@ export const LoginPage = () => {
     setError,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: { name: '', phone: '' },
   });
 
   const { mutate, isPending } = useGetStudentFind();

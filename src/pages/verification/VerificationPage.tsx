@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-// import dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import { Button, Dropdown } from '@/shared/ui';
 import { formatWeekdaysKo } from '@/shared/lib';
 import { useToast } from '@/shared/model/hooks';
@@ -45,13 +45,9 @@ export const VerificationPage = () => {
   const { mutate: postShuttleAttendance, isPending } =
     usePostShuttleAttendance();
 
-  // 오늘 날짜
-  const today = '2025-08-18';
-  // const today = useMemo(() => dayjs().format('YYYY-MM-DD'), []);
+  const today = useMemo(() => dayjs().format('YYYY-MM-DD'), []);
 
-  // 수업 목록 조회
   const { data } = useGetLessonSearch(studentId, today);
-  // const { data } = useGetLessonSearch(studentId, '2025-08-18');
   const lessons = useMemo(() => data?.result ?? [], [data?.result]);
 
   const {
@@ -143,26 +139,28 @@ export const VerificationPage = () => {
       },
     );
 
-    // 서버 스펙에 맞춰 id/boardingOrder 보정 + status 필수 보장
-    const payload = baseItems.reduce<TPostShuttleAttendanceRequest>(
-      (acc, item) => {
-        if (!item.status) return acc; // 선택되지 않은 항목은 제외
-        acc.push({
-          id: item.id ?? null,
-          type: item.type,
-          studentId: item.studentId,
-          lessonId: item.lessonId,
-          lessonStudentId: item.lessonStudentId,
-          lessonScheduleId: item.lessonScheduleId,
-          lessonStudentDetailId: item.lessonStudentDetailId,
-          time: item.time,
-          status: item.status,
-          boardingOrder: 999,
-        });
-        return acc;
-      },
-      [] as TPostShuttleAttendanceRequest,
-    );
+    const hasUnselected = baseItems.some(item => !item.status);
+    if (hasUnselected) {
+      toast({
+        variant: 'destructive',
+        title: '모든 수업을 선택해주세요',
+        description: '각 수업의 출결 상태를 모두 선택해주세요.',
+      });
+      return;
+    }
+
+    const payload = baseItems.map(item => ({
+      id: item.id ?? null,
+      type: item.type,
+      studentId: item.studentId,
+      lessonId: item.lessonId,
+      lessonStudentId: item.lessonStudentId,
+      lessonScheduleId: item.lessonScheduleId,
+      lessonStudentDetailId: item.lessonStudentDetailId,
+      time: item.time,
+      status: item.status!,
+      boardingOrder: 999,
+    })) as TPostShuttleAttendanceRequest;
     postShuttleAttendance(payload, {
       onSuccess: () => {
         toast({

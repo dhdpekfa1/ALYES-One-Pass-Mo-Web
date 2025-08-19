@@ -139,12 +139,12 @@ export const LabelInput = forwardRef<
         </div>
 
         {hasError && (
-          <div>
+          <div className='mt-1'>
             <p className='body-4 text-error'>{errorMessage}</p>
           </div>
         )}
         {hasMessage && (
-          <div>
+          <div className='mt-1'>
             <p className='body-4 text-confirm'>{message}</p>
           </div>
         )}

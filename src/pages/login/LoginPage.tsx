@@ -5,7 +5,7 @@ import { useToast } from '@/shared/model/hooks';
 import { formatPhoneNumber, removeHyphens } from '@/shared/lib';
 import { Button, LabelInput } from '@/shared/ui';
 import { useGetStudentFind } from '@/entities/student/api';
-import { type LoginForValues, loginSchema } from '@/entities/student/model';
+import { type LoginFormValues, loginSchema } from '@/entities/student/model';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -16,13 +16,13 @@ export const LoginPage = () => {
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<LoginForValues>({
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
 
   const { mutate, isPending } = useGetStudentFind();
 
-  const onSubmit = (data: LoginForValues) => {
+  const onSubmit = (data: LoginFormValues) => {
     mutate(
       {
         name: data.name.trim(),

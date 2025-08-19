@@ -91,6 +91,18 @@ export const lessonItemSchema = z.object({
 });
 export type TLesson = z.infer<typeof lessonItemSchema>;
 
+/** 수업 스케줄 */
+export const lessonScheduleSchema = z.object({
+  createdDate: z.string(),
+  modifiedDate: z.string(),
+  id: z.number(),
+  lessonId: z.number(),
+  startTime: z.string(),
+  endTime: z.string(),
+  scheduleDay: lessonScheduleDaysEnumSchema,
+});
+export type TLessonSchedule = z.infer<typeof lessonScheduleSchema>;
+
 /** 학생 기본 타입 */
 export const studentSchema = z.object({
   createdDate: z.string(),

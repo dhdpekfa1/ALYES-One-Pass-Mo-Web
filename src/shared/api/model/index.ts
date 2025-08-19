@@ -25,6 +25,7 @@ export {
   lessonScheduleDaysEnumSchema,
   lessonStudentSchema,
   lessonStudentStatusEnumSchema,
+  lessonScheduleSchema,
   shuttleUsageEnumSchema,
   studentPayMethodTypeEnumSchema,
   studentRelationEnumSchema,
@@ -48,4 +49,5 @@ export type {
   TStudentStatus,
   TShuttleAttendanceStatusEnum,
   TStudentType,
+  TLessonSchedule,
 } from './commonTypes';

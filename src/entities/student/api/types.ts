@@ -7,6 +7,7 @@ import {
   studentSchema,
   userSchema,
   shuttleAttendance,
+  lessonScheduleSchema,
 } from '@/shared/api/model';
 
 /** 사용자 확인 응답 스키마/타입  */
@@ -24,6 +25,7 @@ export const getLessonTeacherResponseSchema = apiResponseSchema.extend({
       lessonStudent: lessonStudentSchema,
       lessonStudentDetail: studentShuttleSchema,
       shuttleAttendance: z.array(shuttleAttendance),
+      lessonSchedule: lessonScheduleSchema,
     }),
   ),
 });
@@ -33,10 +35,14 @@ export type TGetLessonTeacherResponse = z.infer<
 
 /** 출석 사전 확인 등록/수정 요청 스키마/타입 */
 export const postShuttleAttendanceRequestSchema = z.array(
-  shuttleAttendance.omit({
-    createdDate: true,
-    modifiedDate: true,
-  }),
+  shuttleAttendance
+    .omit({
+      createdDate: true,
+      modifiedDate: true,
+    })
+    .extend({
+      id: shuttleAttendance.shape.id.nullable().optional(),
+    }),
 );
 export type TPostShuttleAttendanceRequest = z.infer<
   typeof postShuttleAttendanceRequestSchema

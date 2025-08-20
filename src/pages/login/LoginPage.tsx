@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { Navigate, useNavigate, useSearchParams } from 'react-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/shared/model/hooks';
@@ -6,10 +6,19 @@ import { formatPhoneNumber, removeHyphens } from '@/shared/lib';
 import { Button, LabelInput } from '@/shared/ui';
 import { useGetStudentFind } from '@/entities/student/api';
 import { type LoginFormValues, loginSchema } from '@/entities/student/model';
+import { useGetOrganization } from '@/entities/organization/api/action';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [params] = useSearchParams();
+  const orgId = params.get('orgId');
+
+  const {
+    data: orgData,
+    isLoading: isOrgLoading,
+    isError: isOrgError,
+  } = useGetOrganization(orgId ?? undefined);
 
   const {
     control,
@@ -23,20 +32,15 @@ export const LoginPage = () => {
 
   const { mutate, isPending } = useGetStudentFind();
 
-  const onSubmit = (data: LoginFormValues) => {
+  const onSubmit = (formData: LoginFormValues) => {
     mutate(
       {
-        name: data.name.trim(),
-        phone: data.phone.trim(),
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
       },
       {
-        onSuccess: data => {
-          if (
-            !data ||
-            !data.result ||
-            !data.result ||
-            data.result.length === 0
-          ) {
+        onSuccess: res => {
+          if (!res || !res.result || res.result.length === 0) {
             toast({
               variant: 'destructive',
               title: '해당 정보로 등록된 회원이 없습니다.',
@@ -58,8 +62,8 @@ export const LoginPage = () => {
           });
           navigate('/verification', {
             state: {
-              studentId: data.result[0].id,
-              studentName: data.result[0].name,
+              studentId: res.result[0].id,
+              studentName: res.result[0].name,
             },
           });
         },
@@ -79,6 +83,21 @@ export const LoginPage = () => {
     );
   };
 
+  // orgId 확인 및 로딩/에러 처리
+  if (!orgId || !/^\d+$/.test(orgId)) {
+    return <Navigate to='/404' replace />;
+  }
+  if (isOrgLoading) {
+    return (
+      <div className='flex justify-center items-center h-screen'>
+        <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900' />
+      </div>
+    );
+  }
+  if (isOrgError || !orgData?.result) {
+    return <Navigate to='/404' replace />;
+  }
+
   return (
     <div className='min-h-dvh w-full flex flex-col justify-between lg:justify-center'>
       <div className='w-full sm:max-w-xl lg:max-w-lg lg:mx-auto'>
@@ -92,7 +111,7 @@ export const LoginPage = () => {
             </span>
           </div>
           <p className='title-6 text-grey-800'>
-            [학원명] 수업 출석 사전 확인 페이지입니다.
+            [{orgData.result[0].name}] 수업 출석 사전 확인 페이지입니다.
           </p>
           <p className='mid-5 text-grey-600'>
             회원 이름과 학부모 전화번호를 입력해 학원 회원 인증을 진행해주세요.

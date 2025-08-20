@@ -10,6 +10,7 @@ import {
 import type {
   TShuttleAttendanceStatusEnum,
   TShuttleAttendances,
+  TShuttleUsage,
 } from '@/shared/api/model';
 
 type LessonItem = TGetLessonTeacherResponse['result'][number];
@@ -41,6 +42,22 @@ const getLastShuttle = (lesson: LessonItem) =>
     ? lesson.shuttleAttendance![lesson.shuttleAttendance!.length - 1]
     : undefined;
 
+// 최근 항목 중 타입별 최신 1개씩 반환
+const getLatestByType = (
+  lesson: LessonItem,
+): { BOARDING?: TShuttleAttendances; DROP?: TShuttleAttendances } => {
+  const list = lesson.shuttleAttendance ?? [];
+  let boarding: TShuttleAttendances | undefined;
+  let drop: TShuttleAttendances | undefined;
+  for (let i = list.length - 1; i >= 0; i -= 1) {
+    const it = list[i];
+    if (!boarding && it.type === 'BOARDING') boarding = it;
+    if (!drop && it.type === 'DROP') drop = it;
+    if (boarding && drop) break;
+  }
+  return { BOARDING: boarding, DROP: drop };
+};
+
 type ShuttleAttendanceUpsert = Omit<
   TShuttleAttendances,
   'createdDate' | 'modifiedDate' | 'status'
@@ -56,13 +73,14 @@ const buildItem = (
   studentId: number,
   status: TShuttleAttendanceStatusEnum | undefined,
   existedId?: number,
+  overrideType?: TShuttleUsage,
 ) => {
   if (!ids) {
     throw new Error('수업 정보가 올바르지 않습니다.');
   }
 
   const base: Omit<ShuttleAttendanceUpsert, 'id'> = {
-    type: lesson.lessonStudentDetail?.shuttleUsage ?? 'NONE',
+    type: overrideType ?? lesson.lessonStudentDetail?.shuttleUsage ?? 'NONE',
     studentId,
     lessonId: ids.lessonId,
     lessonStudentId: ids.lessonStudentId,
@@ -108,15 +126,41 @@ export const useAttendance = (
       let hasUnselected = false;
       let hasChanged = true;
       const payload = lessons.flatMap((lesson, index) => {
-        const existed = getLastShuttle(lesson);
         const ids = ensureIds(lesson);
         if (!ids) return [];
         const chosen = formItems?.[index]?.status;
+        const latest = getLastShuttle(lesson);
         const effective: TShuttleAttendanceStatusEnum | undefined =
-          chosen ?? existed?.status;
+          chosen ?? latest?.status;
         if (!effective) hasUnselected = true;
-        if (hasChanged && chosen && chosen !== existed?.status)
+        if (hasChanged && chosen && chosen !== latest?.status)
           hasChanged = false;
+
+        const usage = lesson.lessonStudentDetail?.shuttleUsage ?? 'NONE';
+        if (usage === 'BOTH') {
+          const pair = getLatestByType(lesson);
+          return [
+            buildItem(
+              lesson,
+              ids,
+              date,
+              studentId,
+              effective!,
+              pair.BOARDING?.id,
+              'BOARDING',
+            ),
+            buildItem(
+              lesson,
+              ids,
+              date,
+              studentId,
+              effective!,
+              pair.DROP?.id,
+              'DROP',
+            ),
+          ];
+        }
+
         return [
           buildItem(
             lesson,
@@ -124,7 +168,7 @@ export const useAttendance = (
             date,
             studentId,
             effective!,
-            existed?.id ?? undefined,
+            latest?.id ?? undefined,
           ),
         ];
       }) as TPostShuttleAttendanceRequest;

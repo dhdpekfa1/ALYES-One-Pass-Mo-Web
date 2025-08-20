@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import dayjs from 'dayjs';
+// import dayjs from 'dayjs';
 import { Button, Dropdown } from '@/shared/ui';
 import { formatWeekdaysKo } from '@/shared/lib';
 import { KOR_TO_EN_ATTENDANCE_STATUS_MAP as KOR_TO_STATUS } from '@/shared/model';
@@ -27,7 +27,8 @@ export const VerificationPage = () => {
     studentName: string;
   };
 
-  const today = useMemo(() => dayjs().format('YYYY-MM-DD'), []);
+  // const today = useMemo(() => dayjs().format('YYYY-MM-DD'), []);
+  const today = '2025-08-19';
 
   const { data } = useGetLessonSearch(studentId, today);
   const lessons = useMemo(() => data?.result ?? [], [data?.result]);

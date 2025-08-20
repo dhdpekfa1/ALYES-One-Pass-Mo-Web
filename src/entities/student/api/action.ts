@@ -24,6 +24,10 @@ export const useGetLessonSearch = (studentId: number, time: string) => {
     useFetch<TGetLessonTeacherResponse>(
       `/api/lesson-student/lesson-search-plus-one-day/${studentId}`,
       { params: { studentId, time } },
+      {
+        staleTime: 0,
+        refetchOnMount: 'always',
+      },
     );
   const parsedData = parseData<TGetLessonTeacherResponse>({
     data,

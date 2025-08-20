@@ -30,6 +30,13 @@ const ProtectedRoute = ({
   requiredStep: number;
 }) => {
   const currentStep = parseInt(sessionStorage.getItem('currentStep') || '0');
+  const expiresAt = Number(sessionStorage.getItem('loginExpiresAt') || 0);
+
+  if (!expiresAt || Date.now() > expiresAt) {
+    sessionStorage.clear();
+    queryClient.removeQueries({ predicate: () => true });
+    return <Navigate to='/' replace />;
+  }
 
   if (currentStep < requiredStep) {
     return <Navigate to='/' replace />;

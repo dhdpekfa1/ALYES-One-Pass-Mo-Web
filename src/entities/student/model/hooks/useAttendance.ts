@@ -1,5 +1,4 @@
 import { useMemo, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/model/hooks';
 import type { AttendanceFormValues } from '@/entities/student/model';
 import {
@@ -102,7 +101,6 @@ export const useAttendance = (
   const { toast } = useToast();
   const { mutate, isPending, isError, isSuccess, data } =
     usePostShuttleAttendance();
-  const queryClient = useQueryClient();
 
   const defaults = useMemo<AttendanceFormValues['items']>(() => {
     return lessons.flatMap(lesson => {
@@ -203,9 +201,6 @@ export const useAttendance = (
         toast({
           title: '전송 성공',
           description: '출결 사전 확인을 전송했습니다.',
-        });
-        queryClient.invalidateQueries({
-          queryKey: [`/api/lesson-student/lesson-search/${studentId}`],
         });
 
         options?.onSuccess?.(data, variables, context);

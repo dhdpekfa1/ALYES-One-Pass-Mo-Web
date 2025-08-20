@@ -47,6 +47,10 @@ export const LoginPage = () => {
 
           // 인증 성공 시 다음 페이지(verification) 접근 가능
           sessionStorage.setItem('currentStep', '1');
+          sessionStorage.setItem(
+            'loginExpiresAt',
+            String(Date.now() + 30 * 60 * 1000),
+          );
 
           toast({
             title: '인증 성공',

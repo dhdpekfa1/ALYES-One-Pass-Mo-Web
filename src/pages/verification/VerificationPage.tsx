@@ -49,16 +49,17 @@ export const VerificationPage = () => {
 
   const { fields } = useFieldArray({ control, name: 'items' });
 
-  const bootKeyRef = useRef<string | null>(null);
+  const lastResetLessonsRef = useRef<string>('');
 
   useEffect(() => {
-    if (!lessons.length) return;
-    const key = `${studentId}-${today}`;
-    if (bootKeyRef.current === key) return;
-
-    reset({ items: defaults });
-    bootKeyRef.current = key;
-  }, [lessons, reset, studentId, today, defaults]);
+    if (lessons.length > 0) {
+      const lessonsJSON = JSON.stringify(lessons);
+      if (lastResetLessonsRef.current !== lessonsJSON) {
+        reset({ items: defaults });
+        lastResetLessonsRef.current = lessonsJSON;
+      }
+    }
+  }, [lessons, defaults, reset]);
 
   const onSubmit = (values: AttendanceFormValues) => {
     submit(values.items, {

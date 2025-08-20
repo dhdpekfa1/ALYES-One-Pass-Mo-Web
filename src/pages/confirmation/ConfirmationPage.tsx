@@ -7,7 +7,6 @@ export const ConfirmationPage = () => {
   const navigate = useNavigate();
 
   const onPressButton = () => {
-    console.log('TODO: 인증 시간 30분 확인 필요');
     if (window.history.length > 1) navigate(-1);
     else navigate('/');
   };

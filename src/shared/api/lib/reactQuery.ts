@@ -172,7 +172,7 @@ const useGenericMutation = <T, D>(
 
       return previousData;
     },
-    onError: (error, variables, context) => {
+    onError: (_error, _variables, context) => {
       if (context !== undefined) {
         queryClient.setQueryData(queryKey, context);
       }

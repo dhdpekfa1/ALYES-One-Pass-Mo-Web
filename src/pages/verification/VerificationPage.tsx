@@ -73,6 +73,8 @@ export const VerificationPage = () => {
     });
   };
 
+  console.log(Date.now() + 60 * 1000);
+
   return (
     <div className='min-h-dvh w-full flex flex-col justify-between lg:justify-center'>
       <div className='w-full sm:max-w-xl lg:max-w-lg lg:mx-auto'>

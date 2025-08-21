@@ -33,7 +33,9 @@ const ProtectedRoute = ({
   const expiresAt = Number(sessionStorage.getItem('loginExpiresAt') || 0);
 
   if (!expiresAt || Date.now() > expiresAt) {
+    const orgIdKept = sessionStorage.getItem('orgId');
     sessionStorage.clear();
+    if (orgIdKept) sessionStorage.setItem('orgId', orgIdKept);
     queryClient.removeQueries({ predicate: () => true });
     return <Navigate to='/' replace />;
   }

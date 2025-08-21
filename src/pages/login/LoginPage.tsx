@@ -1,7 +1,7 @@
-import { Navigate, useNavigate, useSearchParams } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useToast } from '@/shared/model/hooks';
+import { useOrgId, useToast } from '@/shared/model/hooks';
 import { formatPhoneNumber, removeHyphens } from '@/shared/lib';
 import { Button, LabelInput } from '@/shared/ui';
 import { useGetStudentFind } from '@/entities/student/api';
@@ -11,8 +11,8 @@ import { useGetOrganization } from '@/entities/organization/api/action';
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [params] = useSearchParams();
-  const orgId = params.get('orgId');
+
+  const orgId = useOrgId();
 
   const {
     data: orgData,
@@ -84,7 +84,7 @@ export const LoginPage = () => {
   };
 
   // orgId 확인 및 로딩/에러 처리
-  if (!orgId || !/^\d+$/.test(orgId)) {
+  if (!orgId) {
     return <Navigate to='/404' replace />;
   }
   if (isOrgLoading) {

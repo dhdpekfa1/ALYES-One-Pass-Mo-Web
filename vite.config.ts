@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://43.201.53.29:8080',
+        target: 'https://onepass.today',
         changeOrigin: true,
       },
     },

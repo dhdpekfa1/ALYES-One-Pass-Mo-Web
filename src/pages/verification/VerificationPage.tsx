@@ -31,10 +31,31 @@ export const VerificationPage = () => {
 
   const { data } = useGetLessonSearch(studentId, today);
   const lessons = useMemo(() => data?.result ?? [], [data?.result]);
+
+  // 요일 enum 매핑 (backend enum 기준)
+  const getEnumDay = (d: dayjs.Dayjs) => {
+    const idx = d.day();
+    return (['SUN', 'MON', 'TUE', 'WED', 'TUR', 'FRI', 'SAT'] as const)[idx];
+  };
+
+  const todayEnum = getEnumDay(dayjs());
+  const tomorrowEnum = getEnumDay(dayjs().add(1, 'day'));
+  const nowHHmm = dayjs().format('HH:mm');
+
+  // 내일은 전부 노출, 오늘은 startTime < 현재시간 제외
+  const filteredLessons = useMemo(() => {
+    return lessons.filter(lesson => {
+      const dayEnum = lesson.lessonSchedule.scheduleDay;
+      const start = lesson.lessonSchedule.startTime;
+      if (dayEnum === tomorrowEnum) return true;
+      if (dayEnum === todayEnum) return start >= nowHHmm;
+      return false;
+    });
+  }, [lessons, todayEnum, tomorrowEnum, nowHHmm]);
   const { defaults, submit, isPending } = useAttendance(
     studentId,
     today,
-    lessons,
+    filteredLessons,
   );
 
   const {
@@ -52,14 +73,14 @@ export const VerificationPage = () => {
   const lastResetLessonsRef = useRef<string>('');
 
   useEffect(() => {
-    if (lessons.length > 0) {
-      const lessonsJSON = JSON.stringify(lessons);
+    if (filteredLessons.length > 0) {
+      const lessonsJSON = JSON.stringify(filteredLessons);
       if (lastResetLessonsRef.current !== lessonsJSON) {
         reset({ items: defaults });
         lastResetLessonsRef.current = lessonsJSON;
       }
     }
-  }, [lessons, defaults, reset]);
+  }, [filteredLessons, defaults, reset]);
 
   const onSubmit = (values: AttendanceFormValues) => {
     submit(values.items, {
@@ -98,10 +119,10 @@ export const VerificationPage = () => {
           </div>
         </div>
 
-        {lessons.length ? (
+        {filteredLessons.length ? (
           <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col p-4'>
             {fields.map((field, index) => {
-              const lesson = lessons[index];
+              const lesson = filteredLessons[index];
               return (
                 <div
                   key={field.id}

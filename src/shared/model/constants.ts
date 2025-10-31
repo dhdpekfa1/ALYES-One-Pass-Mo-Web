@@ -22,3 +22,13 @@ export const KOR_TO_EN_ATTENDANCE_STATUS_MAP = {
   출석: 'WILL_ATTENDANCE',
   결석: 'WILL_ABSENT',
 } as const;
+
+export const WEEKDAYS = [
+  'SUN',
+  'MON',
+  'TUE',
+  'WED',
+  'TUR',
+  'FRI',
+  'SAT',
+] as const;

@@ -1,2 +1,7 @@
 export { cn } from './utils';
-export { formatWeekdaysKo, formatPhoneNumber, removeHyphens } from './format';
+export {
+  formatEnumDay,
+  formatWeekdaysKo,
+  formatPhoneNumber,
+  removeHyphens,
+} from './format';

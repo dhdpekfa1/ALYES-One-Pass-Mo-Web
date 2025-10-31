@@ -4,7 +4,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import { Button, Dropdown } from '@/shared/ui';
-import { formatWeekdaysKo } from '@/shared/lib';
+import { formatWeekdaysKo, formatEnumDay } from '@/shared/lib';
 import { KOR_TO_EN_ATTENDANCE_STATUS_MAP as KOR_TO_STATUS } from '@/shared/model';
 import { useGetLessonSearch } from '@/entities/student/api';
 import { useAttendance } from '@/entities/student/model/hooks';
@@ -32,15 +32,10 @@ export const VerificationPage = () => {
   const { data } = useGetLessonSearch(studentId, today);
   const lessons = useMemo(() => data?.result ?? [], [data?.result]);
 
-  // 요일 enum 매핑 (backend enum 기준)
-  const getEnumDay = (d: dayjs.Dayjs) => {
-    const idx = d.day();
-    return (['SUN', 'MON', 'TUE', 'WED', 'TUR', 'FRI', 'SAT'] as const)[idx];
-  };
-
-  const todayEnum = getEnumDay(dayjs());
-  const tomorrowEnum = getEnumDay(dayjs().add(1, 'day'));
-  const nowHHmm = dayjs().format('HH:mm');
+  const now = dayjs();
+  const todayEnum = formatEnumDay(now);
+  const tomorrowEnum = formatEnumDay(now.add(1, 'day'));
+  const nowHHmm = now.format('HH:mm');
 
   // 내일은 전부 노출, 오늘은 startTime < 현재시간 제외
   const filteredLessons = useMemo(() => {

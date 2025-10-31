@@ -1,7 +1,9 @@
+import dayjs from 'dayjs';
 import {
+  WEEKDAYS,
   EN_DAY_TO_NUMBER_MAP,
   EN_TO_KOR_DAY_MAP,
-} from '@/shared/model/constants';
+} from '@/shared/model';
 
 /** MON -> 월 */
 export const formatWeekdaysKo = (days: string[]): string => {
@@ -30,4 +32,10 @@ export const removeHyphens = (value?: string) => {
     return '';
   }
   return value.replace(/-/g, '');
+};
+
+/** Dayjs -> enum(MON, TUE, WED, TUR, FRI, SAT, SUN) */
+export const formatEnumDay = (dayJs: dayjs.Dayjs) => {
+  const idx = dayJs.day();
+  return WEEKDAYS[idx];
 };

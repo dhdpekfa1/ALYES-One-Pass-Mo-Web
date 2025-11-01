@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useToast } from '@/shared/model/hooks';
 import type { AttendanceFormValues } from '@/entities/student/model';
+import type { TShuttleAttendanceItem } from '@/entities/student/model/types';
 import {
   type TPostShuttleAttendanceRequest,
   type TGetLessonTeacherResponse,
@@ -57,14 +58,6 @@ const getLatestByType = (
   return { BOARDING: boarding, DROP: drop };
 };
 
-type ShuttleAttendanceUpsert = Omit<
-  TShuttleAttendances,
-  'createdDate' | 'modifiedDate' | 'status'
-> & {
-  id?: number;
-  status?: TShuttleAttendanceStatusEnum;
-};
-
 const buildItem = (
   lesson: LessonItem,
   ids: ReturnType<typeof ensureIds>,
@@ -73,12 +66,12 @@ const buildItem = (
   status: TShuttleAttendanceStatusEnum | undefined,
   existedId?: number,
   overrideType?: TShuttleUsage,
-) => {
+): TShuttleAttendanceItem => {
   if (!ids) {
     throw new Error('수업 정보가 올바르지 않습니다.');
   }
 
-  const base: Omit<ShuttleAttendanceUpsert, 'id'> = {
+  const base = {
     type: overrideType ?? lesson.lessonStudentDetail?.shuttleUsage ?? 'NONE',
     studentId,
     lessonId: ids.lessonId,
@@ -88,7 +81,7 @@ const buildItem = (
     time: date,
     boardingOrder: BOARDING_ORDER_DEFAULT,
     ...(status ? { status } : {}),
-  };
+  } satisfies Omit<TShuttleAttendanceItem, 'id'>;
 
   return existedId != null ? { id: existedId, ...base } : { ...base };
 };
@@ -108,7 +101,14 @@ export const useAttendance = (
       const ids = ensureIds(lesson);
       if (!ids) return [];
       return [
-        buildItem(lesson, ids, date, studentId, existed?.status, existed?.id),
+        buildItem(
+          lesson,
+          ids,
+          date,
+          studentId,
+          existed?.status ?? undefined,
+          existed?.id,
+        ),
       ];
     });
   }, [lessons, studentId, date]);
@@ -129,7 +129,7 @@ export const useAttendance = (
         const chosen = formItems?.[index]?.status;
         const latest = getLastShuttle(lesson);
         const effective: TShuttleAttendanceStatusEnum | undefined =
-          chosen ?? latest?.status;
+          chosen ?? latest?.status ?? undefined;
         if (!effective) hasUnselected = true;
         if (hasChanged && chosen && chosen !== latest?.status)
           hasChanged = false;

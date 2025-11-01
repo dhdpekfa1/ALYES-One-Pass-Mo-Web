@@ -4,7 +4,11 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import { Button, Dropdown } from '@/shared/ui';
-import { formatWeekdaysKo, formatEnumDay } from '@/shared/lib';
+import {
+  formatWeekdaysKo,
+  formatEnumDay,
+  filterLessonsByTodayAndTomorrow,
+} from '@/shared/lib';
 import { KOR_TO_EN_ATTENDANCE_STATUS_MAP as KOR_TO_STATUS } from '@/shared/model';
 import { useGetLessonSearch } from '@/entities/student/api';
 import { useAttendance } from '@/entities/student/model/hooks';
@@ -39,13 +43,12 @@ export const VerificationPage = () => {
 
   // 내일은 전부 노출, 오늘은 startTime < 현재시간 제외
   const filteredLessons = useMemo(() => {
-    return lessons.filter(lesson => {
-      const dayEnum = lesson.lessonSchedule.scheduleDay;
-      const start = lesson.lessonSchedule.startTime;
-      if (dayEnum === tomorrowEnum) return true;
-      if (dayEnum === todayEnum) return start >= nowHHmm;
-      return false;
-    });
+    return filterLessonsByTodayAndTomorrow(
+      lessons,
+      todayEnum,
+      tomorrowEnum,
+      nowHHmm,
+    );
   }, [lessons, todayEnum, tomorrowEnum, nowHHmm]);
   const { defaults, submit, isPending } = useAttendance(
     studentId,
@@ -181,7 +184,7 @@ export const VerificationPage = () => {
           variant='primary'
           size='lg'
           onPress={handleSubmit(onSubmit)}
-          disabled={isPending || !lessons.length}
+          disabled={isPending || !filteredLessons.length}
         />
       </div>
     </div>

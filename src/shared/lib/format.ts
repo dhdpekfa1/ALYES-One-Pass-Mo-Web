@@ -39,3 +39,26 @@ export const formatEnumDay = (dayJs: dayjs.Dayjs) => {
   const idx = dayJs.day();
   return WEEKDAYS[idx];
 };
+
+/**
+ * 오늘/내일 수업 필터링
+ * 내일 수업은 모두 표시, 오늘 수업은 startTime이 현재 시간 이후인 것만 표시
+ */
+export const filterLessonsByTodayAndTomorrow = <
+  T extends {
+    lessonSchedule: { scheduleDay: string; startTime: string };
+  },
+>(
+  lessons: T[],
+  todayEnum: string,
+  tomorrowEnum: string,
+  nowHHmm: string,
+): T[] => {
+  return lessons.filter(lesson => {
+    const { scheduleDay, startTime } = lesson.lessonSchedule;
+    return (
+      scheduleDay === tomorrowEnum ||
+      (scheduleDay === todayEnum && startTime >= nowHHmm)
+    );
+  });
+};

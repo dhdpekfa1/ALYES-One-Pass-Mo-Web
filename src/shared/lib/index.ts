@@ -4,4 +4,5 @@ export {
   formatWeekdaysKo,
   formatPhoneNumber,
   removeHyphens,
+  filterLessonsByTodayAndTomorrow,
 } from './format';

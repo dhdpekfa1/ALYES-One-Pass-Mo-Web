@@ -10,6 +10,7 @@ import {
   usePostShuttleAttendance,
 } from '@/entities/student/api';
 import type {
+  TLessonScheduleDays,
   TShuttleAttendanceStatusEnum,
   TShuttleAttendances,
   TShuttleUsage,
@@ -64,8 +65,8 @@ const buildItem = (
   lesson: LessonItem,
   ids: ReturnType<typeof ensureIds>,
   todayDate: string,
-  todayEnum: string,
-  tomorrowEnum: string,
+  todayEnum: TLessonScheduleDays,
+  tomorrowEnum: TLessonScheduleDays,
   studentId: number,
   status: TShuttleAttendanceStatusEnum | undefined,
   existedId?: number,
@@ -99,15 +100,15 @@ const buildItem = (
 
 export const useAttendance = (
   studentId: number,
-  date: string,
+  date: string, // YYYY-MM-DD
   lessons: LessonItem[],
 ) => {
   const { toast } = useToast();
   const { mutate, isPending, isError, isSuccess, data } =
     usePostShuttleAttendance();
 
-  const todayEnum = formatEnumDay(dayjs());
-  const tomorrowEnum = formatEnumDay(dayjs().add(1, 'day'));
+  const todayEnum = formatEnumDay(dayjs(date));
+  const tomorrowEnum = formatEnumDay(dayjs(date).add(1, 'day'));
 
   const defaults = useMemo<AttendanceFormValues['items']>(() => {
     return lessons.flatMap(lesson => {

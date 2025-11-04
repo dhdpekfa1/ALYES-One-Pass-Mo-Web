@@ -4,6 +4,7 @@ import {
   EN_DAY_TO_NUMBER_MAP,
   EN_TO_KOR_DAY_MAP,
 } from '@/shared/model';
+import type { TLessonScheduleDays } from '../api/model';
 
 /** MON -> 월 */
 export const formatWeekdaysKo = (days: string[]): string => {
@@ -68,17 +69,19 @@ export const filterLessonsByTodayAndTomorrow = <
  * scheduleDay가 오늘이면 오늘 날짜, 내일이면 내일 날짜 반환
  */
 export const getLessonDate = (
-  scheduleDay: string,
-  todayEnum: string,
-  tomorrowEnum: string,
-  todayDate: string,
+  scheduleDay: TLessonScheduleDays,
+  todayEnum: TLessonScheduleDays,
+  tomorrowEnum: TLessonScheduleDays,
+  date: string,
 ): string => {
   if (scheduleDay === todayEnum) {
-    return todayDate;
+    return date;
   }
   if (scheduleDay === tomorrowEnum) {
-    return dayjs(todayDate).add(1, 'day').format('YYYY-MM-DD');
+    return dayjs(date).add(1, 'day').format('YYYY-MM-DD');
   }
 
-  return todayDate;
+  throw new Error(
+    `수업일 계산 오류: scheduleDay=${scheduleDay}, todayEnum=${todayEnum}, tomorrowEnum=${tomorrowEnum}, date=${date}`,
+  );
 };

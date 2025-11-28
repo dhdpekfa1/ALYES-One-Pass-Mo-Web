@@ -147,9 +147,6 @@ export function Button({
         ) : (
           title
         )}
-        {/* {variant === 'underline' && (
-          <span className='block w-full h-px bg-grey-500 -mt-0.5' />
-        )} */}
         {variant === 'arrow' &&
           (ArrowIcon ?? <ChevronRightSvg width={20} height={20} />)}
       </span>

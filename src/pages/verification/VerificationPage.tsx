@@ -61,6 +61,37 @@ export const VerificationPage = () => {
     {},
   );
 
+  const renderEditButton = (
+    index: number,
+    onChange: (value: string) => void,
+  ) => {
+    const defaultStatus = defaults[index]?.status;
+    if (!defaultStatus) return null;
+
+    const isEditing = !!editEnabledMap[index];
+    const handleToggleEdit = () => {
+      setEditEnabledMap(prev => {
+        const nextEnabled = !prev[index];
+        // 수정 종료 시 값 원복
+        if (!nextEnabled && defaultStatus) {
+          onChange(defaultStatus);
+        }
+        return { ...prev, [index]: nextEnabled };
+      });
+    };
+
+    return (
+      <div>
+        <Button
+          title={isEditing ? '취소' : '수정'}
+          variant='underline'
+          size='sm'
+          onPress={handleToggleEdit}
+        />
+      </div>
+    );
+  };
+
   const {
     control,
     handleSubmit,
@@ -88,15 +119,24 @@ export const VerificationPage = () => {
   }, [filteredLessons, defaults, reset]);
 
   // 폼 값 변경 여부 계산 (변경 사항 없으면 전송 버튼 비활성화)
-  const watchedItems = watch('items');
   useEffect(() => {
-    if (!watchedItems || watchedItems.length === 0) {
-      setHasFormChanged(false);
-      return;
-    }
-    const { hasChanged } = toRequest(watchedItems);
-    setHasFormChanged(hasChanged);
-  }, [watchedItems, toRequest]);
+    const subscription = watch((value, { name }) => {
+      if (!name || (name !== 'items' && !name.startsWith('items.'))) return;
+
+      const items = (value.items ?? []).filter(
+        item => item != null,
+      ) as AttendanceFormValues['items'];
+      if (!items || items.length === 0) {
+        setHasFormChanged(false);
+        return;
+      }
+
+      const { hasChanged } = toRequest(items);
+      setHasFormChanged(hasChanged);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [watch, toRequest]);
 
   const onSubmit = (values: AttendanceFormValues) => {
     submit(values.items, {
@@ -175,31 +215,9 @@ export const VerificationPage = () => {
                       <Dropdown
                         label='출결 선택'
                         labelRightContent={
-                          hasInitialStatus &&
-                          (() => {
-                            const defaultStatus = defaults[index]?.status;
-                            const isEditing = !!editEnabledMap[index];
-                            const handleToggleEdit = () => {
-                              setEditEnabledMap(prev => {
-                                const nextEnabled = !prev[index];
-                                // 편집 모드를 끌 때는 값 되돌리기
-                                if (!nextEnabled && defaultStatus) {
-                                  field.onChange(defaultStatus);
-                                }
-                                return { ...prev, [index]: nextEnabled };
-                              });
-                            };
-                            return (
-                              <div>
-                                <Button
-                                  title={isEditing ? '취소' : '수정'}
-                                  variant='underline'
-                                  size='sm'
-                                  onPress={handleToggleEdit}
-                                />
-                              </div>
-                            );
-                          })()
+                          hasInitialStatus
+                            ? renderEditButton(index, field.onChange)
+                            : null
                         }
                         disabled={isDisabled}
                         items={ITEMS}

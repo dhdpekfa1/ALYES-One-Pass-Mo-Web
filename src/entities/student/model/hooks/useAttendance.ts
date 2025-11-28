@@ -135,10 +135,8 @@ export const useAttendance = (
       formItems: AttendanceFormValues['items'],
     ): {
       payload: TPostShuttleAttendanceRequest;
-      hasUnselected: boolean;
       hasChanged: boolean;
     } => {
-      let hasUnselected = false;
       let hasChanged = false;
       const payload: TPostShuttleAttendanceRequest = [];
 
@@ -149,12 +147,6 @@ export const useAttendance = (
         const chosen = formItems?.[index]?.status;
         const latest = getLastShuttle(lesson);
         const latestStatus = latest?.status;
-
-        // 선택 안 한 상태
-        if (!latestStatus && !chosen) {
-          hasUnselected = true;
-          return;
-        }
 
         const isNew = !latestStatus && !!chosen;
         const isUpdated = !!latestStatus && !!chosen && chosen !== latestStatus;
@@ -210,7 +202,7 @@ export const useAttendance = (
         }
       });
 
-      return { payload, hasUnselected, hasChanged };
+      return { payload, hasChanged };
     },
     [lessons, studentId, date, todayEnum, tomorrowEnum],
   );
@@ -219,15 +211,7 @@ export const useAttendance = (
     formItems: AttendanceFormValues['items'],
     options?: Parameters<typeof mutate>[1],
   ) => {
-    const { payload, hasUnselected, hasChanged } = toRequest(formItems);
-    if (hasUnselected) {
-      toast({
-        variant: 'destructive',
-        title: '모든 수업을 선택해주세요',
-        description: '각 수업의 출결 상태를 모두 선택해주세요.',
-      });
-      return;
-    }
+    const { payload, hasChanged } = toRequest(formItems);
     if (!hasChanged || payload.length === 0) {
       toast({
         title: '변경 사항이 없습니다.',

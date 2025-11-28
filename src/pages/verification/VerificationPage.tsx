@@ -31,7 +31,7 @@ export const VerificationPage = () => {
     studentName: string;
   };
 
-  const today = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+  const today = dayjs().format('YYYY-MM-DD');
   const { data, isLoading } = useGetLessonSearch(studentId, today);
   const lessons = useMemo(() => data?.result ?? [], [data?.result]);
 
@@ -87,15 +87,15 @@ export const VerificationPage = () => {
     }
   }, [filteredLessons, defaults, reset]);
 
-  // 폼 값 변경 여부 계산 (변경 사항 없거나 하나라도 미선택이면 전송 버튼 비활성화)
+  // 폼 값 변경 여부 계산 (변경 사항 없으면 전송 버튼 비활성화)
   const watchedItems = watch('items');
   useEffect(() => {
     if (!watchedItems || watchedItems.length === 0) {
       setHasFormChanged(false);
       return;
     }
-    const { hasChanged, hasUnselected } = toRequest(watchedItems);
-    setHasFormChanged(hasChanged && !hasUnselected);
+    const { hasChanged } = toRequest(watchedItems);
+    setHasFormChanged(hasChanged);
   }, [watchedItems, toRequest]);
 
   const onSubmit = (values: AttendanceFormValues) => {

@@ -139,22 +139,38 @@ export const useAttendance = (
       hasChanged: boolean;
     } => {
       let hasUnselected = false;
-      let hasChanged = true;
-      const payload = lessons.flatMap((lesson, index) => {
+      let hasChanged = false;
+      const payload: TPostShuttleAttendanceRequest = [];
+
+      lessons.forEach((lesson, index) => {
         const ids = ensureIds(lesson);
-        if (!ids) return [];
+        if (!ids) return;
+
         const chosen = formItems?.[index]?.status;
         const latest = getLastShuttle(lesson);
-        const effective: TShuttleAttendanceStatusEnum | undefined =
-          chosen ?? latest?.status ?? undefined;
-        if (!effective) hasUnselected = true;
-        if (hasChanged && chosen && chosen !== latest?.status)
-          hasChanged = false;
+        const latestStatus = latest?.status;
+
+        // 선택 안 한 상태
+        if (!latestStatus && !chosen) {
+          hasUnselected = true;
+          return;
+        }
+
+        const isNew = !latestStatus && !!chosen;
+        const isUpdated = !!latestStatus && !!chosen && chosen !== latestStatus;
+
+        // 새로 입력/수정되지 않은 항목은 API 요청에서 제외
+        if (!isNew && !isUpdated) {
+          return;
+        }
+
+        hasChanged = true;
+        const effective = chosen!;
 
         const usage = lesson.lessonStudentDetail?.shuttleUsage ?? 'NONE';
         if (usage === 'BOTH') {
           const pair = getLatestByType(lesson);
-          return [
+          payload.push(
             buildItem(
               lesson,
               ids,
@@ -162,7 +178,7 @@ export const useAttendance = (
               todayEnum,
               tomorrowEnum,
               studentId,
-              effective!,
+              effective,
               pair.BOARDING?.id,
               'BOARDING',
             ),
@@ -173,26 +189,27 @@ export const useAttendance = (
               todayEnum,
               tomorrowEnum,
               studentId,
-              effective!,
+              effective,
               pair.DROP?.id,
               'DROP',
             ),
-          ];
+          );
+        } else {
+          payload.push(
+            buildItem(
+              lesson,
+              ids,
+              date,
+              todayEnum,
+              tomorrowEnum,
+              studentId,
+              effective,
+              latest?.id ?? undefined,
+            ),
+          );
         }
+      });
 
-        return [
-          buildItem(
-            lesson,
-            ids,
-            date,
-            todayEnum,
-            tomorrowEnum,
-            studentId,
-            effective!,
-            latest?.id ?? undefined,
-          ),
-        ];
-      }) as TPostShuttleAttendanceRequest;
       return { payload, hasUnselected, hasChanged };
     },
     [lessons, studentId, date, todayEnum, tomorrowEnum],
@@ -211,7 +228,7 @@ export const useAttendance = (
       });
       return;
     }
-    if (hasChanged) {
+    if (!hasChanged || payload.length === 0) {
       toast({
         title: '변경 사항이 없습니다.',
         description: '이미 등록된 출결 상태입니다.',

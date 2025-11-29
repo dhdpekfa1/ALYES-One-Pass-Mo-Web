@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,15 +31,16 @@ export const VerificationPage = () => {
     studentName: string;
   };
 
-  const today = useMemo(() => dayjs().format('YYYY-MM-DD'), []);
-
-  const { data } = useGetLessonSearch(studentId, today);
+  const today = dayjs().format('YYYY-MM-DD');
+  const { data, isLoading } = useGetLessonSearch(studentId, today);
   const lessons = useMemo(() => data?.result ?? [], [data?.result]);
 
-  const now = dayjs();
-  const todayEnum = formatEnumDay(now);
-  const tomorrowEnum = formatEnumDay(now.add(1, 'day'));
-  const nowHHmm = now.format('HH:mm');
+  // API에 전달한 날짜(today)를 기준으로 요일(enum)을 계산
+  const baseDate = dayjs(today);
+  const todayEnum = formatEnumDay(baseDate);
+  const tomorrowEnum = formatEnumDay(baseDate.add(1, 'day'));
+  // 시간 비교는 실제 현재 시간을 사용
+  const nowHHmm = dayjs().format('HH:mm');
 
   // 내일은 전부 노출, 오늘은 startTime < 현재시간 제외
   const filteredLessons = useMemo(() => {
@@ -50,16 +51,84 @@ export const VerificationPage = () => {
       nowHHmm,
     );
   }, [lessons, todayEnum, tomorrowEnum, nowHHmm]);
-  const { defaults, submit, isPending } = useAttendance(
+
+  // 오늘 수업 상단, 내일 수업 하단 배치 +
+  // 각 그룹별 startTime, endTime 오름차순 정렬
+  const sortedLessons = useMemo(() => {
+    if (filteredLessons.length <= 1) return filteredLessons;
+
+    const copy = [...filteredLessons];
+    copy.sort((a, b) => {
+      const dayA = a.lessonSchedule.scheduleDay;
+      const dayB = b.lessonSchedule.scheduleDay;
+
+      if (dayA !== dayB) {
+        // 오늘 수업이 위, 내일 수업이 아래
+        if (dayA === todayEnum) return -1;
+        if (dayB === todayEnum) return 1;
+        if (dayA === tomorrowEnum) return -1;
+        if (dayB === tomorrowEnum) return 1;
+      }
+
+      const startA = a.lessonSchedule.startTime;
+      const startB = b.lessonSchedule.startTime;
+      if (startA !== startB) {
+        return startA.localeCompare(startB);
+      }
+
+      const endA = a.lessonSchedule.endTime;
+      const endB = b.lessonSchedule.endTime;
+      return endA.localeCompare(endB);
+    });
+    return copy;
+  }, [filteredLessons, todayEnum, tomorrowEnum]);
+
+  const { defaults, submit, toRequest, isPending } = useAttendance(
     studentId,
     today,
-    filteredLessons,
+    sortedLessons,
   );
+
+  const [editEnabledMap, setEditEnabledMap] = useState<Record<number, boolean>>(
+    {},
+  );
+
+  const renderEditButton = (
+    index: number,
+    onChange: (value: string) => void,
+  ) => {
+    const defaultStatus = defaults[index]?.status;
+    if (!defaultStatus) return null;
+
+    const isEditing = !!editEnabledMap[index];
+    const handleToggleEdit = () => {
+      setEditEnabledMap(prev => {
+        const nextEnabled = !prev[index];
+        // 수정 종료 시 값 원복
+        if (!nextEnabled && defaultStatus) {
+          onChange(defaultStatus);
+        }
+        return { ...prev, [index]: nextEnabled };
+      });
+    };
+
+    return (
+      <div>
+        <Button
+          title={isEditing ? '취소' : '수정'}
+          variant='underline'
+          size='sm'
+          onPress={handleToggleEdit}
+        />
+      </div>
+    );
+  };
 
   const {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<AttendanceFormValues>({
     resolver: zodResolver(shuttleAttendanceFormSchema),
@@ -69,16 +138,37 @@ export const VerificationPage = () => {
   const { fields } = useFieldArray({ control, name: 'items' });
 
   const lastResetLessonsRef = useRef<string>('');
+  const [hasFormChanged, setHasFormChanged] = useState(false);
 
   useEffect(() => {
-    if (filteredLessons.length > 0) {
-      const lessonsJSON = JSON.stringify(filteredLessons);
+    if (sortedLessons.length > 0 && defaults.length > 0) {
+      const lessonsJSON = JSON.stringify(sortedLessons);
       if (lastResetLessonsRef.current !== lessonsJSON) {
         reset({ items: defaults });
         lastResetLessonsRef.current = lessonsJSON;
       }
     }
-  }, [filteredLessons, defaults, reset]);
+  }, [sortedLessons, defaults, reset]);
+
+  // 폼 값 변경 여부 계산 (변경 사항 없으면 전송 버튼 비활성화)
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (!name || (name !== 'items' && !name.startsWith('items.'))) return;
+
+      const items = (value.items ?? []).filter(
+        item => item != null,
+      ) as AttendanceFormValues['items'];
+      if (!items || items.length === 0) {
+        setHasFormChanged(false);
+        return;
+      }
+
+      const { hasChanged } = toRequest(items);
+      setHasFormChanged(hasChanged);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [watch, toRequest]);
 
   const onSubmit = (values: AttendanceFormValues) => {
     submit(values.items, {
@@ -117,14 +207,20 @@ export const VerificationPage = () => {
           </div>
         </div>
 
-        {filteredLessons.length ? (
+        {isLoading ? (
+          <div className='flex justify-center items-center my-20'>
+            <div className='w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin' />
+          </div>
+        ) : sortedLessons.length ? (
           <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col p-4'>
             {fields.map((field, index) => {
-              const lesson = filteredLessons[index];
+              const lesson = sortedLessons[index];
+              const hasInitialStatus = !!defaults[index]?.status;
+              const isDisabled = hasInitialStatus && !editEnabledMap[index];
               return (
                 <div
                   key={field.id}
-                  className='flex flex-col p-2.5 gap-4 bg-grey-50 rounded-[6px]'
+                  className='flex flex-col p-2.5 gap-4 bg-grey-50 rounded-[6px] mb-4'
                 >
                   <span className='mid-5 text-green-700'>수업-{index + 1}</span>
 
@@ -150,6 +246,12 @@ export const VerificationPage = () => {
                     render={({ field }) => (
                       <Dropdown
                         label='출결 선택'
+                        labelRightContent={
+                          hasInitialStatus
+                            ? renderEditButton(index, field.onChange)
+                            : null
+                        }
+                        disabled={isDisabled}
                         items={ITEMS}
                         selectedItem={
                           field.value ? STATUS_TO_KOR[field.value] : ''
@@ -184,7 +286,7 @@ export const VerificationPage = () => {
           variant='primary'
           size='lg'
           onPress={handleSubmit(onSubmit)}
-          disabled={isPending || !filteredLessons.length}
+          disabled={isPending || !sortedLessons.length || !hasFormChanged}
         />
       </div>
     </div>

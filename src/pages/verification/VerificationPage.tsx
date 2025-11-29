@@ -55,29 +55,16 @@ export const VerificationPage = () => {
   // 오늘 수업 상단, 내일 수업 하단 배치 +
   // 각 그룹별 startTime, endTime 오름차순 정렬
   const sortedLessons = useMemo(() => {
-    if (filteredLessons.length <= 1) return filteredLessons;
+    return [...filteredLessons].sort((a, b) => {
+      const dayOrderA = a.lessonSchedule.scheduleDay === todayEnum ? 0 : 1;
+      const dayOrderB = b.lessonSchedule.scheduleDay === todayEnum ? 0 : 1;
 
-    const copy = [...filteredLessons];
-    copy.sort((a, b) => {
-      const dayA = a.lessonSchedule.scheduleDay;
-      const dayB = b.lessonSchedule.scheduleDay;
-
-      if (dayA !== dayB) {
-        // 오늘 수업이 위, 내일 수업이 아래
-        return dayA === todayEnum ? -1 : 1;
-      }
-
-      const startA = a.lessonSchedule.startTime;
-      const startB = b.lessonSchedule.startTime;
-      if (startA !== startB) {
-        return startA.localeCompare(startB);
-      }
-
-      const endA = a.lessonSchedule.endTime;
-      const endB = b.lessonSchedule.endTime;
-      return endA.localeCompare(endB);
+      return (
+        dayOrderA - dayOrderB ||
+        a.lessonSchedule.startTime.localeCompare(b.lessonSchedule.startTime) ||
+        a.lessonSchedule.endTime.localeCompare(b.lessonSchedule.endTime)
+      );
     });
-    return copy;
   }, [filteredLessons, todayEnum]);
 
   const { defaults, submit, toRequest, isPending } = useAttendance(

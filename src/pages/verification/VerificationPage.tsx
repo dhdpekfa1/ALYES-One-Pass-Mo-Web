@@ -51,10 +51,26 @@ export const VerificationPage = () => {
       nowHHmm,
     );
   }, [lessons, todayEnum, tomorrowEnum, nowHHmm]);
+
+  // 오늘 수업 상단, 내일 수업 하단 배치 +
+  // 각 그룹별 startTime, endTime 오름차순 정렬
+  const sortedLessons = useMemo(() => {
+    return [...filteredLessons].sort((a, b) => {
+      const dayOrderA = a.lessonSchedule.scheduleDay === todayEnum ? 0 : 1;
+      const dayOrderB = b.lessonSchedule.scheduleDay === todayEnum ? 0 : 1;
+
+      return (
+        dayOrderA - dayOrderB ||
+        a.lessonSchedule.startTime.localeCompare(b.lessonSchedule.startTime) ||
+        a.lessonSchedule.endTime.localeCompare(b.lessonSchedule.endTime)
+      );
+    });
+  }, [filteredLessons, todayEnum]);
+
   const { defaults, submit, toRequest, isPending } = useAttendance(
     studentId,
     today,
-    filteredLessons,
+    sortedLessons,
   );
 
   const [editEnabledMap, setEditEnabledMap] = useState<Record<number, boolean>>(
@@ -109,14 +125,14 @@ export const VerificationPage = () => {
   const [hasFormChanged, setHasFormChanged] = useState(false);
 
   useEffect(() => {
-    if (filteredLessons.length > 0 && defaults.length > 0) {
-      const lessonsJSON = JSON.stringify(filteredLessons);
+    if (sortedLessons.length > 0 && defaults.length > 0) {
+      const lessonsJSON = JSON.stringify(sortedLessons);
       if (lastResetLessonsRef.current !== lessonsJSON) {
         reset({ items: defaults });
         lastResetLessonsRef.current = lessonsJSON;
       }
     }
-  }, [filteredLessons, defaults, reset]);
+  }, [sortedLessons, defaults, reset]);
 
   // 폼 값 변경 여부 계산 (변경 사항 없으면 전송 버튼 비활성화)
   useEffect(() => {
@@ -179,10 +195,10 @@ export const VerificationPage = () => {
           <div className='flex justify-center items-center my-20'>
             <div className='w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin' />
           </div>
-        ) : filteredLessons.length ? (
+        ) : sortedLessons.length ? (
           <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col p-4'>
             {fields.map((field, index) => {
-              const lesson = filteredLessons[index];
+              const lesson = sortedLessons[index];
               const hasInitialStatus = !!defaults[index]?.status;
               const isDisabled = hasInitialStatus && !editEnabledMap[index];
               return (
@@ -254,7 +270,7 @@ export const VerificationPage = () => {
           variant='primary'
           size='lg'
           onPress={handleSubmit(onSubmit)}
-          disabled={isPending || !filteredLessons.length || !hasFormChanged}
+          disabled={isPending || !sortedLessons.length || !hasFormChanged}
         />
       </div>
     </div>

@@ -25,7 +25,11 @@ export const studentStatusEnumSchema = z.enum(['ACTIVE', 'QUIT', 'IDLE']);
 export type TStudentStatus = z.infer<typeof studentStatusEnumSchema>;
 
 /** 수강 학생 상태 enum 타입 */
-export const lessonStudentStatusEnumSchema = z.enum(['ACTIVE', 'INACTIVE']);
+export const lessonStudentStatusEnumSchema = z.enum([
+  'ACTIVE',
+  'INACTIVE',
+  'PAUSE',
+]);
 export type TLessonStudentStatus = z.infer<
   typeof lessonStudentStatusEnumSchema
 >;

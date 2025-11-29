@@ -71,8 +71,6 @@ function getBackgroundClasses(
       return 'bg-white border border-grey-100 rounded-[5px]';
     case 'error':
       return 'bg-error';
-    case 'underline':
-      return 'bg-white';
     case 'arrow':
       return 'bg-white';
     default:
@@ -112,6 +110,10 @@ export function Button({
   const textSize = getTextSize(size, variant);
   const bgClasses = getBackgroundClasses(variant, disabled);
   const heightClass = getHeightClass(size);
+  const underlineClasses =
+    variant === 'underline'
+      ? 'underline underline-offset-[2px] decoration-grey-500'
+      : '';
 
   return (
     <button
@@ -139,12 +141,11 @@ export function Button({
         )}
       >
         {typeof title === 'string' ? (
-          <span className={cn(textColor, textSize)}>{title}</span>
+          <span className={cn(textColor, textSize, underlineClasses)}>
+            {title}
+          </span>
         ) : (
           title
-        )}
-        {variant === 'underline' && (
-          <span className='block w-full h-px bg-grey-500 -mt-0.5' />
         )}
         {variant === 'arrow' &&
           (ArrowIcon ?? <ChevronRightSvg width={20} height={20} />)}

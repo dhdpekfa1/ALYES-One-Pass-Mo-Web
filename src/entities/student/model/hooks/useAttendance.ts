@@ -12,7 +12,6 @@ import {
 import type {
   TLessonScheduleDays,
   TShuttleAttendanceStatusEnum,
-  TShuttleAttendances,
   TShuttleUsage,
 } from '@/shared/api/model';
 
@@ -44,22 +43,6 @@ const getLastShuttle = (lesson: LessonItem) =>
   (lesson.shuttleAttendance?.length ?? 0) > 0
     ? lesson.shuttleAttendance![lesson.shuttleAttendance!.length - 1]
     : undefined;
-
-// 최근 항목 중 타입별 최신 1개씩 반환
-const getLatestByType = (
-  lesson: LessonItem,
-): { BOARDING?: TShuttleAttendances; DROP?: TShuttleAttendances } => {
-  const list = lesson.shuttleAttendance ?? [];
-  let boarding: TShuttleAttendances | undefined;
-  let drop: TShuttleAttendances | undefined;
-  for (let i = list.length - 1; i >= 0; i -= 1) {
-    const it = list[i];
-    if (!boarding && it.type === 'BOARDING') boarding = it;
-    if (!drop && it.type === 'DROP') drop = it;
-    if (boarding && drop) break;
-  }
-  return { BOARDING: boarding, DROP: drop };
-};
 
 const buildItem = (
   lesson: LessonItem,
@@ -159,47 +142,18 @@ export const useAttendance = (
         hasChanged = true;
         const effective = chosen!;
 
-        const usage = lesson.lessonStudentDetail?.shuttleUsage ?? 'NONE';
-        if (usage === 'BOTH') {
-          const pair = getLatestByType(lesson);
-          payload.push(
-            buildItem(
-              lesson,
-              ids,
-              date,
-              todayEnum,
-              tomorrowEnum,
-              studentId,
-              effective,
-              pair.BOARDING?.id,
-              'BOARDING',
-            ),
-            buildItem(
-              lesson,
-              ids,
-              date,
-              todayEnum,
-              tomorrowEnum,
-              studentId,
-              effective,
-              pair.DROP?.id,
-              'DROP',
-            ),
-          );
-        } else {
-          payload.push(
-            buildItem(
-              lesson,
-              ids,
-              date,
-              todayEnum,
-              tomorrowEnum,
-              studentId,
-              effective,
-              latest?.id ?? undefined,
-            ),
-          );
-        }
+        payload.push(
+          buildItem(
+            lesson,
+            ids,
+            date,
+            todayEnum,
+            tomorrowEnum,
+            studentId,
+            effective,
+            latest?.id ?? undefined,
+          ),
+        );
       });
 
       return { payload, hasChanged };

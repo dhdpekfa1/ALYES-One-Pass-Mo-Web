@@ -1,5 +1,6 @@
 import {
   type TGetLessonTeacherResponse,
+  type TGetStudentFindRequest,
   type TGetStudentFindResponse,
   type TPostShuttleAttendanceRequest,
   type TPostShuttleAttendanceResponse,
@@ -13,10 +14,10 @@ import { z } from 'zod';
 
 /** 사용자 인증 */
 export const useGetStudentFind = () =>
-  useGetAuthMutation<
-    TGetStudentFindResponse['result'],
-    { name: string; phone: string }
-  >('/api/student/find/name-and-phone', getStudentFindResponse.shape.result);
+  useGetAuthMutation<TGetStudentFindResponse['result'], TGetStudentFindRequest>(
+    '/api/student/find/name-and-phone',
+    getStudentFindResponse.shape.result,
+  );
 
 /** 수강 수업 조회 */
 export const useGetLessonSearch = (studentId: number, time: string) => {

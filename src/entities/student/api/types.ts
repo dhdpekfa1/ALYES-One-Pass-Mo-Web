@@ -16,6 +16,16 @@ export const getStudentFindResponse = apiResponseSchema.extend({
 });
 export type TGetStudentFindResponse = z.infer<typeof getStudentFindResponse>;
 
+/** 사용자 확인 요청 스키마/타입 */
+export const getStudentFindRequestSchema = z.object({
+  name: z.string(),
+  phone: z.string(),
+  organizationId: z.string(),
+});
+export type TGetStudentFindRequest = z.infer<
+  typeof getStudentFindRequestSchema
+>;
+
 /** 수강 수업 조회 응답 스키마/타입 */
 export const getLessonTeacherResponseSchema = apiResponseSchema.extend({
   result: z.array(

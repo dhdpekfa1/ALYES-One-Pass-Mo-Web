@@ -1,0 +1,10 @@
+{
+  "studentId": 299,
+  "lessonId": 2602,
+  "lessonScheduleId": 2602,
+  "lessonStudentId": 0,
+  "lessonCouponId": null,
+  "lessonStudentEventType": "SUPPLEMENT",
+  "eventTime": "2025-12-11",
+  "attendanceStatus": null
+}

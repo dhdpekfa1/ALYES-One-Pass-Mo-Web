@@ -9,6 +9,7 @@ import { nameField, phoneField } from '@/shared/model';
 export const loginSchema = z.object({
   name: nameField,
   phone: phoneField,
+  organizationId: z.string(),
 });
 export type LoginFormValues = z.infer<typeof loginSchema>;
 

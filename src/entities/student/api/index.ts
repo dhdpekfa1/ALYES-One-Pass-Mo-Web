@@ -3,6 +3,7 @@ export {
   type TGetLessonTeacherResponse,
   type TPostShuttleAttendanceResponse,
   type TPostShuttleAttendanceRequest,
+  type TGetStudentFindRequest,
   postShuttleAttendanceResponseSchema,
   postShuttleAttendanceRequestSchema,
   getStudentFindResponse,

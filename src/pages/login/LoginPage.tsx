@@ -27,7 +27,7 @@ export const LoginPage = () => {
     setError,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { name: '', phone: '' },
+    defaultValues: { name: '', phone: '', organizationId: orgId },
   });
 
   const { mutate, isPending } = useGetStudentFind();
@@ -35,6 +35,7 @@ export const LoginPage = () => {
   const onSubmit = (formData: LoginFormValues) => {
     mutate(
       {
+        organizationId: formData.organizationId,
         name: formData.name.trim(),
         phone: formData.phone.trim(),
       },

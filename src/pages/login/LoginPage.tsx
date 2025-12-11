@@ -35,7 +35,7 @@ export const LoginPage = () => {
   const onSubmit = (formData: LoginFormValues) => {
     mutate(
       {
-        organizationId: orgId!,
+        organizationId: formData.organizationId,
         name: formData.name.trim(),
         phone: formData.phone.trim(),
       },

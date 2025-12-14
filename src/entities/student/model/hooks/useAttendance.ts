@@ -20,10 +20,11 @@ type LessonItem = TGetLessonTeacherResponse['result'][number];
 const BOARDING_ORDER_DEFAULT = 999;
 
 const ensureIds = (lesson: LessonItem) => {
-  const lessonId = lesson.lessonStudent.lessonId ?? lesson.lesson.id;
-  const lessonStudentId = lesson.lessonStudent.id;
+  const lessonId = lesson.lessonStudent?.lessonId ?? lesson.lesson.id;
   const lessonScheduleId = lesson.lessonSchedule.id;
-  const lessonStudentDetailId = lesson.lessonStudentDetail.id;
+  // lessonStudentEvent의 경우 lessonStudent, lessonStudentDetail 정보가 없는 상태 -> 0으로 요청
+  const lessonStudentId = lesson.lessonStudent?.id ?? 0;
+  const lessonStudentDetailId = lesson.lessonStudentDetail?.id ?? 0;
   if (
     lessonId == null ||
     lessonStudentId == null ||

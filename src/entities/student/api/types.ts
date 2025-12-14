@@ -31,11 +31,11 @@ export const getLessonTeacherResponseSchema = apiResponseSchema.extend({
   result: z.array(
     z.object({
       lesson: lessonItemSchema,
-      student: studentSchema,
-      lessonStudent: lessonStudentSchema,
-      lessonStudentDetail: studentShuttleSchema,
-      shuttleAttendance: z.array(shuttleAttendance),
       lessonSchedule: lessonScheduleSchema,
+      student: studentSchema,
+      lessonStudent: lessonStudentSchema.nullable(),
+      lessonStudentDetail: studentShuttleSchema.nullable(),
+      shuttleAttendance: z.array(shuttleAttendance),
     }),
   ),
 });

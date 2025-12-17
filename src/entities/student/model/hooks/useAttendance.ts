@@ -60,12 +60,31 @@ const buildItem = (
     throw new Error('수업 정보가 올바르지 않습니다.');
   }
 
-  const lessonDate = getLessonDate(
-    lesson.lessonSchedule.scheduleDay,
-    todayEnum,
-    tomorrowEnum,
-    todayDate,
-  );
+  // 이벤트 수업인 경우 shuttleAttendance[0].time의 날짜 직접 사용
+  const firstShuttleAttendance = lesson.shuttleAttendance?.[0];
+  let lessonDate: string;
+  if (firstShuttleAttendance) {
+    const { eventYn, time } = firstShuttleAttendance;
+    if (eventYn === true && time) {
+      lessonDate = dayjs(time).format('YYYY-MM-DD');
+    } else {
+      // 일반 수업인 경우 기존 로직 사용
+      lessonDate = getLessonDate(
+        lesson.lessonSchedule.scheduleDay,
+        todayEnum,
+        tomorrowEnum,
+        todayDate,
+      );
+    }
+  } else {
+    // 일반 수업인 경우 기존 로직 사용
+    lessonDate = getLessonDate(
+      lesson.lessonSchedule.scheduleDay,
+      todayEnum,
+      tomorrowEnum,
+      todayDate,
+    );
+  }
 
   const base = {
     type: overrideType ?? lesson.lessonStudentDetail?.shuttleUsage ?? 'NONE',
@@ -143,18 +162,24 @@ export const useAttendance = (
         hasChanged = true;
         const effective = chosen!;
 
-        payload.push(
-          buildItem(
-            lesson,
-            ids,
-            date,
-            todayEnum,
-            tomorrowEnum,
-            studentId,
-            effective,
-            latest?.id ?? undefined,
-          ),
+        const item = buildItem(
+          lesson,
+          ids,
+          date,
+          todayEnum,
+          tomorrowEnum,
+          studentId,
+          effective,
+          latest?.id ?? undefined,
         );
+
+        const firstShuttleAttendance = lesson.shuttleAttendance?.[0];
+        const { dropYn, eventYn } = firstShuttleAttendance ?? {};
+        payload.push({
+          ...item,
+          dropYn: latest?.dropYn ?? dropYn ?? null,
+          eventYn: eventYn ?? null,
+        });
       });
 
       return { payload, hasChanged };

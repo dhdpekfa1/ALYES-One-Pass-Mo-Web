@@ -44,10 +44,12 @@ export const formatEnumDay = (dayJs: dayjs.Dayjs) => {
 /**
  * 오늘/내일 수업 필터링
  * 내일 수업은 모두 표시, 오늘 수업은 startTime이 현재 시간 이후인 것만 표시
+ * 이벤트 수업(eventYn === true)인 경우 shuttleAttendance[0].time의 날짜로 enum 계산
  */
 export const filterLessonsByTodayAndTomorrow = <
   T extends {
     lessonSchedule: { scheduleDay: string; startTime: string };
+    shuttleAttendance?: Array<{ eventYn?: boolean | null; time?: string }>;
   },
 >(
   lessons: T[],
@@ -57,9 +59,21 @@ export const filterLessonsByTodayAndTomorrow = <
 ): T[] => {
   return lessons.filter(lesson => {
     const { scheduleDay, startTime } = lesson.lessonSchedule;
+    const firstShuttleAttendance = lesson.shuttleAttendance?.[0];
+
+    // 이벤트 수업인 경우 shuttleAttendance[0].time의 날짜로 enum 계산
+    let effectiveScheduleDay = scheduleDay;
+    if (firstShuttleAttendance) {
+      const { eventYn, time } = firstShuttleAttendance;
+      if (eventYn === true && time) {
+        const eventDate = dayjs(time);
+        effectiveScheduleDay = formatEnumDay(eventDate);
+      }
+    }
+
     return (
-      scheduleDay === tomorrowEnum ||
-      (scheduleDay === todayEnum && startTime >= nowHHmm)
+      effectiveScheduleDay === tomorrowEnum ||
+      (effectiveScheduleDay === todayEnum && startTime >= nowHHmm)
     );
   });
 };

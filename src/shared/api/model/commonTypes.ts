@@ -170,5 +170,7 @@ export const shuttleAttendance = z.object({
   time: z.string(),
   status: shuttleAttendanceStatusEnumSchema.nullable().optional(),
   boardingOrder: z.number().nullable().optional(),
+  dropYn: z.boolean().nullable(),
+  eventYn: z.boolean().nullable(),
 });
 export type TShuttleAttendances = z.infer<typeof shuttleAttendance>;

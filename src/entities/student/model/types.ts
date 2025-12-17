@@ -25,6 +25,8 @@ export const shuttleAttendanceItemSchema = z.object({
   time: z.string(),
   status: shuttleAttendanceStatusEnumSchema.optional(),
   boardingOrder: z.number(),
+  dropYn: z.boolean().nullable().optional(),
+  eventYn: z.boolean().nullable().optional(),
 });
 export type TShuttleAttendanceItem = z.infer<
   typeof shuttleAttendanceItemSchema

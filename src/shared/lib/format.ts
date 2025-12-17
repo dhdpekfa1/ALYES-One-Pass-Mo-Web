@@ -63,12 +63,12 @@ export const filterLessonsByTodayAndTomorrow = <
 
     // 이벤트 수업인 경우 shuttleAttendance[0].time의 날짜로 enum 계산
     let effectiveScheduleDay = scheduleDay;
-    if (
-      firstShuttleAttendance?.eventYn === true &&
-      firstShuttleAttendance?.time
-    ) {
-      const eventDate = dayjs(firstShuttleAttendance.time);
-      effectiveScheduleDay = formatEnumDay(eventDate);
+    if (firstShuttleAttendance) {
+      const { eventYn, time } = firstShuttleAttendance;
+      if (eventYn === true && time) {
+        const eventDate = dayjs(time);
+        effectiveScheduleDay = formatEnumDay(eventDate);
+      }
     }
 
     return (

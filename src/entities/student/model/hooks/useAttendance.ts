@@ -63,11 +63,19 @@ const buildItem = (
   // 이벤트 수업인 경우 shuttleAttendance[0].time의 날짜 직접 사용
   const firstShuttleAttendance = lesson.shuttleAttendance?.[0];
   let lessonDate: string;
-  if (
-    firstShuttleAttendance?.eventYn === true &&
-    firstShuttleAttendance?.time
-  ) {
-    lessonDate = dayjs(firstShuttleAttendance.time).format('YYYY-MM-DD');
+  if (firstShuttleAttendance) {
+    const { eventYn, time } = firstShuttleAttendance;
+    if (eventYn === true && time) {
+      lessonDate = dayjs(time).format('YYYY-MM-DD');
+    } else {
+      // 일반 수업인 경우 기존 로직 사용
+      lessonDate = getLessonDate(
+        lesson.lessonSchedule.scheduleDay,
+        todayEnum,
+        tomorrowEnum,
+        todayDate,
+      );
+    }
   } else {
     // 일반 수업인 경우 기존 로직 사용
     lessonDate = getLessonDate(
@@ -166,10 +174,11 @@ export const useAttendance = (
         );
 
         const firstShuttleAttendance = lesson.shuttleAttendance?.[0];
+        const { dropYn, eventYn } = firstShuttleAttendance ?? {};
         payload.push({
           ...item,
-          dropYn: latest?.dropYn ?? firstShuttleAttendance?.dropYn ?? null,
-          eventYn: firstShuttleAttendance?.eventYn ?? null,
+          dropYn: latest?.dropYn ?? dropYn ?? null,
+          eventYn: eventYn ?? null,
         });
       });
 
